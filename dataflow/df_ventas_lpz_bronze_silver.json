@@ -15,7 +15,15 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ventas_scz_limpio_csv",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "select1"
@@ -30,7 +38,13 @@
 					"name": "fecha"
 				},
 				{
+					"name": "num"
+				},
+				{
 					"name": "derivedColumn1"
+				},
+				{
+					"name": "nulos"
 				}
 			],
 			"scriptLines": [
@@ -85,7 +99,18 @@
 				"toDate(fecha, 'dd/MMM/yyyy'),\r",
 				"toDate(fecha, 'dd-MMM-yyyy'))) ~> fecha",
 				"fecha derive(cantidad = toInteger(cantidad),",
-				"          precio_unitario = toFloat(regexReplace(toString(precio_unitario), '[^0-9.]', ''))) ~> derivedColumn1"
+				"          precio_unitario = toFloat(regexReplace(toString(precio_unitario), '[^0-9.]', ''))) ~> num",
+				"num derive(producto = initCap(trim(regexReplace(producto, '\\\\s+',' ')))) ~> derivedColumn1",
+				"derivedColumn1 filter(cantidad>0 && !isNull(precio_unitario) && !isNull(fecha)) ~> nulos",
+				"nulos sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['ventas_lpz_limpio.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
 			]
 		}
 	}
