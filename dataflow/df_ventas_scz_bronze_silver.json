@@ -1,0 +1,61 @@
+{
+	"name": "df_ventas_scz_bronze_silver",
+	"properties": {
+		"folder": {
+			"name": "bronze"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ventas_scz_csv",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "trim"
+				},
+				{
+					"name": "may"
+				},
+				{
+					"name": "scz"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id_venta as string,",
+				"          fecha as string,",
+				"          producto as string,",
+				"          cantidad as string,",
+				"          precio_unitario as string,",
+				"          sucursal as string,",
+				"          vendedor as string,",
+				"          cliente_nombre as string,",
+				"          cliente_email as string,",
+				"          metodo_pago as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 derive(vendedor = trim(vendedor),",
+				"          cliente_nombre = trim(cliente_nombre),",
+				"          id_venta = trim(id_venta),",
+				"          fecha = trim(fecha),",
+				"          producto = trim(producto),",
+				"          cantidad = trim(cantidad),",
+				"          precio_unitario = trim(precio_unitario),",
+				"          sucursal = trim(sucursal),",
+				"          cliente_email = trim(cliente_email),",
+				"          metodo_pago = trim(metodo_pago)) ~> trim",
+				"trim derive(producto = initCap(regexReplace(producto,'\\\\s+',' '))) ~> may",
+				"may derive(sucursal = iif(in(['SCZ','Santa Cruz','Sta Cruz','santa cruz','SANTA CRUZ','Sta. Cruz','SC'], sucursal),'Santa Cruz',sucursal)) ~> scz"
+			]
+		}
+	}
+}
