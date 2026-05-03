@@ -25,6 +25,15 @@
 				},
 				{
 					"name": "scz"
+				},
+				{
+					"name": "float"
+				},
+				{
+					"name": "fecha"
+				},
+				{
+					"name": "nulos"
 				}
 			],
 			"scriptLines": [
@@ -54,7 +63,20 @@
 				"          cliente_email = trim(cliente_email),",
 				"          metodo_pago = trim(metodo_pago)) ~> trim",
 				"trim derive(producto = initCap(regexReplace(producto,'\\\\s+',' '))) ~> may",
-				"may derive(sucursal = iif(in(['SCZ','Santa Cruz','Sta Cruz','santa cruz','SANTA CRUZ','Sta. Cruz','SC'], sucursal),'Santa Cruz',sucursal)) ~> scz"
+				"may derive(sucursal = iif(in(['SCZ','Santa Cruz','Sta Cruz','santa cruz','SANTA CRUZ','Sta. Cruz','SC'], sucursal),'Santa Cruz',sucursal)) ~> scz",
+				"scz derive(precio_unitario = toFloat(regexReplace(toString(precio_unitario),'[^0-9.]',''))\r",
+				",",
+				"          cantidad = toInteger(cantidad)) ~> float",
+				"float derive(fecha = coalesce(\r",
+				"toDate(fecha, 'yyyy-MM-dd'),\r",
+				"toDate(fecha, 'dd-MM-yyyy'),\r",
+				"toDate(fecha, 'MM-dd-yyyy'),\r",
+				"toDate(fecha, 'dd/MM/yyyy'),\r",
+				"toDate(fecha, 'yyyy/MM/dd'),\r",
+				"toDate(fecha, 'dd/MM/yyyy'),\r",
+				"toDate(fecha, 'dd/MMM/yyyy'),\r",
+				"toDate(fecha, 'dd-MMM-yyyy'))) ~> fecha",
+				"fecha filter(cantidad>0 && !isNull(precio_unitario) && !isNull(fecha)) ~> nulos"
 			]
 		}
 	}
